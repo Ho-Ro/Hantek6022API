@@ -99,14 +99,14 @@ void timer2_isr(void) __interrupt TF2_ISR
 static void set_coupling(BYTE coupling_cfg)
 {
 	if (coupling_cfg & 0x01)
-		IOE |= 0x08;
+		IOE |= 0x0A;
 	else
-		IOE &= ~0x08;
+		IOE &= ~0x0A;
 
 	if (coupling_cfg & 0x10)
-		IOE |= 0x01;
+		IOE |= 0x05;
 	else
-		IOE &= ~0x01;
+		IOE &= ~0x05;
 }
 
 
