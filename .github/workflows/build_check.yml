@@ -22,7 +22,7 @@ jobs:
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
 
       # Load the necessary packages
@@ -41,7 +41,7 @@ jobs:
 
       # Upload the deb package as artifact
       - name: Upload_Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: hantek6022api_all_${{github.run_number}}
           path: deb_dist/hantek6022api_*_all.deb

@@ -24,7 +24,7 @@ and focusses mainly on Hantek6022BE/BL under Linux (development system: Debian s
 
 ![Scope Visualisation Example](examples/plot_from_capture.png)
 
-This is a API for Python for the ultra-cheap, reasonably usable (and hackable) 6022 DSO,
+This is a API for Python3 for the ultra-cheap, reasonably usable (and hackable) 6022 DSO,
 with a libusb implementation via libusb1 for Linux.
 
 The scope can be accessed by instantiating an oscilloscope object.
@@ -43,9 +43,13 @@ If you are a user, you can simply download the latest Debian package from
 [examples](https://github.com/Ho-Ro/Hantek6022API/tree/main/examples),
 all tools named `*_6022.py` are copied to `/usr/bin` and are thus globally available.
 
-You can even use the programs without installing anything. You just need a working `python3-libusb` installation.
-All you need is the `PyHT6022` directory in the directory where your Python program is located (e.g. in `examples`).
-This means:
+If you're lucky you can even use the programs without installing anything.
+You just need a working `python3` and the python modules `libusb1`, `matplotlib`, and `numpy`.
+This can be achived on debian with `apt install python3-usb1 python3-matplotlib python3-numpy`,
+or use `pip install libusb1 matplotlib numpy`.
+
+All you need is the `PyHT6022` directory in the directory where your Python program is located
+(e.g. in `examples`). This means:
 
 - download this repo (as `https://github.com/Ho-Ro/Hantek6022API/archive/refs/heads/main.zip`)
 - or execute `git clone https://github.com/Ho-Ro/Hantek6022API.git`
