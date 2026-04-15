@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Copyright 2009, Ubixum, Inc
 #
@@ -183,4 +183,5 @@ if __name__ == '__main__':
     ihx_filename = args[0]
     iic_filename = args[1]
     build_eeprom_image ( ihx_filename, iic_filename, options.vid, options.pid, options.devid, options.configbyte )
+
 

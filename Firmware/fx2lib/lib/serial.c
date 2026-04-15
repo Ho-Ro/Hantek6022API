@@ -69,7 +69,7 @@ void sio0_init( DWORD baud_rate ) __critical { // baud_rate max should be 57600 
 
 }
 
-int getchar() { // compatible with sdcc header
+int getchar(void) {
   char c;
   while (!RI)
     ;  
@@ -84,7 +84,7 @@ void _transchar(char c) {
  SBUF0=c;
 }
 
-int putchar (char c) { // compatible with sdcc header
+int putchar (char c) {
   if (c=='\n') _transchar('\r'); // transmit \r\n
   _transchar(c);  
   if (c == '\r' ) _transchar('\n'); // transmit \r\n

@@ -50,34 +50,34 @@ extern __code BYTE highspd_dscr;
 extern __code BYTE fullspd_dscr;
 
 
-void resume_isr( void ) __interrupt RESUME_ISR { CLEAR_RESUME(); }
+void resume_isr( void ) __interrupt (RESUME_ISR) { CLEAR_RESUME(); }
 
 
-void sudav_isr( void ) __interrupt SUDAV_ISR {
+void sudav_isr( void ) __interrupt (SUDAV_ISR) {
     dosud = TRUE;
     CLEAR_SUDAV();
 }
 
 
-void usbreset_isr( void ) __interrupt USBRESET_ISR {
+void usbreset_isr( void ) __interrupt (USBRESET_ISR) {
     handle_hispeed( FALSE );
     CLEAR_USBRESET();
 }
 
 
-void hispeed_isr( void ) __interrupt HISPEED_ISR {
+void hispeed_isr( void ) __interrupt (HISPEED_ISR) {
     handle_hispeed( TRUE );
     CLEAR_HISPEED();
 }
 
 
-void suspend_isr( void ) __interrupt SUSPEND_ISR {
+void suspend_isr( void ) __interrupt (SUSPEND_ISR) {
     dosuspend = TRUE;
     CLEAR_SUSPEND();
 }
 
 
-void timer2_isr( void ) __interrupt TF2_ISR {
+void timer2_isr( void ) __interrupt (TF2_ISR) {
     /* Toggle the probe calibration pin. */
     TOGGLE_CALIBRATION_PIN();
 #ifdef LED_RED_TOGGLE
