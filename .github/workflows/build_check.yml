@@ -2,6 +2,9 @@
 
 name: Build_Check
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 # Controls when the action will run.
 on:
   # Triggers the workflow on push
@@ -22,7 +25,7 @@ jobs:
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout
-        uses: actions/checkout
+        uses: actions/checkout@v6
 
 
       # Load the necessary packages
@@ -41,7 +44,7 @@ jobs:
 
       # Upload the deb package as artifact
       - name: Upload_Artifact
-        uses: actions/upload-artifact
+        uses: actions/upload-artifact@v7
         with:
           name: hantek6022api_all_${{github.run_number}}
           path: deb_dist/hantek6022api_*_all.deb
@@ -50,7 +53,7 @@ jobs:
       # Upload the deb package as release asset if the commit was tagged
       - name: Upload_Release_Asset
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release
+        uses: softprops/action-gh-release@v3
         with:
           prerelease: true
           files: deb_dist/hantek6022api_*_all.deb
