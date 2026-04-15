@@ -15,14 +15,14 @@ jobs:
   # This workflow contains a single job called "build_check"
   build_check:
     # The type of runner that the job will run on - needs ubuntu-20.04 to get a recent sdcc
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout
 
 
       # Load the necessary packages
@@ -41,7 +41,7 @@ jobs:
 
       # Upload the deb package as artifact
       - name: Upload_Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact
         with:
           name: hantek6022api_all_${{github.run_number}}
           path: deb_dist/hantek6022api_*_all.deb
@@ -50,7 +50,7 @@ jobs:
       # Upload the deb package as release asset if the commit was tagged
       - name: Upload_Release_Asset
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release
         with:
           prerelease: true
           files: deb_dist/hantek6022api_*_all.deb
