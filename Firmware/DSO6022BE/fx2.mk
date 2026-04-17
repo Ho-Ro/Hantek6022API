@@ -115,6 +115,6 @@ load: $(BUILDDIR)/$(BASENAME).bix
 	fx2load -v $(VID) -p $(PID) $(BUILDDIR)/$(BASENAME).bix
 
 clean:
-	-rm *~
-	-( cd $(BUILDDIR) && rm -f *.asm *.bix *.hex *.ihx *.lk *.lst *.map *.mem *.rel *.rst *.sym )
+	@rm -f *~
+	@-( cd $(BUILDDIR) && rm -f *.asm *.bix *.hex *.ihx *.lk *.lst *.map *.mem *.rel *.rst *.sym )
 

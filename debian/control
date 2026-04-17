@@ -1,0 +1,28 @@
+Source: hantek6022api
+Section: electronics
+Priority: optional
+Maintainer: Martin Homuth-Rosemann <Ho-Ro@users.github.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-all,
+               pybuild-plugin-pyproject,
+               python3-setuptools,
+               python3-usb1,
+               sdcc,
+               pkgconf,
+               libusb-1.0-0-dev
+Standards-Version: 4.6.2
+Homepage: https://github.com/Ho-Ro/Hantek6022API
+Rules-Requires-Root: no
+
+Package: hantek6022api
+Architecture: any
+Depends: ${python3:Depends},
+         ${misc:Depends},
+         python3-usb1,
+         python3-numpy,
+         python3-matplotlib
+Description: Hantek 6022BE Python API for Linux.
+ This package provides a Python3 API for the Hantek 6022BE/BL USB
+ oscilloscopes, using libusb1 for Linux. It includes utilities
+ for capturing data, calibration, and more.

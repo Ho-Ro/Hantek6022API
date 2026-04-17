@@ -5,11 +5,16 @@
 *.o
 fx2upload
 
-# Packages
+# build files and directories
 *.egg
 *.egg-info
+.pybuild
+debian/hantek6022api
+debian/*debhelper*
+debian/files
+debian/hantek6022api.substvars
+
 hantek6022api*.tar.gz
-*.deb
 build
 dist
 deb_dist

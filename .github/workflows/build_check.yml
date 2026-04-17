@@ -32,7 +32,7 @@ jobs:
       - name: Setup_Build
         run:
           sudo apt update;
-          sudo apt-get install --quiet --yes fakeroot python3-setuptools python3-stdeb dh-python python3-libusb1 sdcc libusb-1.0 libusb-1.0-0-dev;
+          sudo apt build-dep .;
           git submodule update --init --recursive;
 
 
@@ -46,8 +46,8 @@ jobs:
       - name: Upload_Artifact
         uses: actions/upload-artifact@v7
         with:
-          name: hantek6022api_all_${{github.run_number}}
-          path: deb_dist/hantek6022api_*_all.deb
+          name: hantek6022api_${{github.run_number}}
+          path: deb_dist/hantek6022api_*_*.deb
 
 
       # Upload the deb package as release asset if the commit was tagged
@@ -56,6 +56,6 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           prerelease: true
-          files: deb_dist/hantek6022api_*_all.deb
+          files: deb_dist/hantek6022api_*_*.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

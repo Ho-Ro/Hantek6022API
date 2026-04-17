@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="driver">
+  <id>com.github.ho-ro.hantek6022api</id>
+  <name>Hantek 6022 API</name>
+  <summary>Python API and firmware for Hantek 6022BE/BL oscilloscopes</summary>
+  <description>
+    <p>
+      This package provides a Python3 API and custom firmware for the
+      Hantek 6022BE/BL USB oscilloscopes. It includes utilities for
+      capturing data, calibration, and more.
+    </p>
+  </description>
+  <developer>
+    <name>Martin Homuth-Rosemann</name>
+  </developer>
+  <url type="homepage">https://github.com/Ho-Ro/Hantek6022API</url>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0+</project_license>
+  <provides>
+    <modalias>usb:v04B4p6021d*</modalias>
+    <modalias>usb:v04B5p6021d*</modalias>
+    <modalias>usb:v04B4p6022d*</modalias>
+    <modalias>usb:v04B5p6022d*</modalias>
+    <modalias>usb:v04B4p602Ad*</modalias>
+    <modalias>usb:v04B5p602Ad*</modalias>
+    <modalias>usb:v04B4p2020d*</modalias>
+    <modalias>usb:v8102p8102d*</modalias>
+    <modalias>usb:v04B5p0120d*</modalias>
+  </provides>
+</component>

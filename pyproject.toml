@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hantek6022api"
+version = "2.10.8" # Update this to match your current version
+authors = [
+  {name = "Martin Homuth-Rosemann", email = "Ho-Ro@users.github.com"},
+]
+description = "Hantek 6022BE Python API for Windows and Linux."
+readme = "README.md"
+license = "GPL-3.0-or-later"
+requires-python = ">=3.6"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+]
+dependencies = [
+    "libusb1>=1.0",
+    "matplotlib",
+    "numpy",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/Ho-Ro/Hantek6022API"
+"Bug Tracker" = "https://github.com/Ho-Ro/Hantek6022API/issues"
+
+[tool.setuptools]
+packages = ["PyHT6022","PyHT6022.Firmware","PyHT6022.Firmware.HEX"]
+# Include firmware data files if they are part of the package
+include-package-data = true
+
+[tool.setuptools.package-data]
+"PyHT6022.Firmware.HEX" = ["*.hex","*.ihex"]
+
+[project.scripts]
+calibrate_6022 = "PyHT6022.calibrate:main"
+capture_6022 = "PyHT6022.capture:main"
+#fft_from_capture_6022 = "PyHT6022.fft_from_capture:main"
+get_serial_number_6022 = "PyHT6022.get_serial_number:main"
+#plot_from_capture_6022 = "PyHT6022.plot_from_capture:main"
+upload_firmware_6022 = "PyHT6022.upload_firmware:main"
+

@@ -1,4 +1,4 @@
-__author__ = 'Robert Cope', 'Jochen Hoenicke'
+__author__ = 'Robert Cope', 'Jochen Hoenicke', 'Martin Homuth-Rosemann'
 
 import array
 import libusb1

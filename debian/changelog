@@ -1,0 +1,5 @@
+hantek6022api (2.10.8-1) experimental; urgency=medium
+
+  * Initial release with pyproject.toml.
+
+ -- Martin Homuth-Rosemann <Ho-Ro@users.github.com>  Thu, 16 Apr 2026 10:00:00 +0000
