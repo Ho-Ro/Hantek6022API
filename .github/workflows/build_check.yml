@@ -33,13 +33,14 @@ jobs:
         run:
           sudo apt update;
           sudo apt build-dep .;
+          sudo apt install devscripts;
           git submodule update --init --recursive;
 
 
       # Build the program and package it
       - name: Build_Package
         run:
-          sudo make deb;
+          make deb;
 
 
       # Upload the deb package as artifact
