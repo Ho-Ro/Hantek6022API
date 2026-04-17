@@ -10,7 +10,7 @@ authors = [
 ]
 description = "Hantek 6022BE Python API for Windows and Linux."
 readme = "README.md"
-license = "GPL-3.0-or-later"
+license = {text = "GPL-3.0-or-later"}
 requires-python = ">=3.6"
 classifiers = [
     "Programming Language :: Python :: 3",
