@@ -1,0 +1,29 @@
+.TH UPLOAD_FIRMWARE_6022 1 "April 2026" "hantek6022api 2.10.9" "User Commands"
+.SH NAME
+upload_firmware_6022 \- upload firmware to Hantek 6022BE/BL oscilloscope
+.SH SYNOPSIS
+.B upload_firmware_6022
+[\fB\-V\fR \fIVID\fR] [\fB\-P\fR \fIPID\fR] [\fB\-\-be\fR|\fB\-\-bl\fR]
+.SH DESCRIPTION
+Upload custom firmware to a Hantek 6022BE/BL USB oscilloscope.
+The firmware is loaded into RAM and is lost when power is removed.
+.SH OPTIONS
+.TP
+\fB\-V\fR \fIVID\fR, \fB\-\-VID\fR \fIVID\fR
+Set vendor ID (hex).
+.TP
+\fB\-P\fR \fIPID\fR, \fB\-\-PID\fR \fIPID\fR
+Set product ID (hex).
+.TP
+\fB\-\-be\fR, \fB\-\-6022be\fR
+Use DSO-6022BE firmware.
+.TP
+\fB\-\-bl\fR, \fB\-\-6022bl\fR
+Use DSO-6022BL firmware.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Show help message and exit.
+.SH SEE ALSO
+.BR calibrate_6022 (1),
+.BR capture_6022 (1),
+.BR get_serial_number_6022 (1)

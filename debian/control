@@ -3,6 +3,7 @@ Section: electronics
 Priority: optional
 Maintainer: Martin Homuth-Rosemann <Ho-Ro@users.github.com>
 Build-Depends: debhelper-compat (= 13),
+               devscripts,
                dh-python,
                python3-all,
                pybuild-plugin-pyproject,

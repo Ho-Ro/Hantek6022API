@@ -8,6 +8,7 @@
 
 const uint16_t DSO602x_FW_VER = 0x0210;
 
-// PyHT6022/LibUsbScope.py: FIRMWARE_VERSION = 0x0210
 // Firmware/DSO6022BE/descriptor.inc: FIRMWARE_VERSION = 0x1002
+// pyproject.toml: version = "2.10.9"
+// debian/changelog: hantek6022api (2.10.9-1) UNRELEASED; urgency=medium
 

@@ -1,32 +1,43 @@
 #!/usr/bin/env python3
 """
-Minimal version - Get serial number from Hantek 6022BE/BL oscilloscope.
+Get serial number from Hantek 6022BE/BL oscilloscope.
 """
 
 import sys
 from PyHT6022.LibUsbScope import Oscilloscope
 
 
+def print_help():
+    """Print simple help message."""
+    print("Usage: get_serial_number_6022 - get serial number from Hantek 6022BE/BL oscilloscope")
+
+
 def main():
-    """Entry point for console script - minimal version."""
+    """Get and print the serial number of the oscilloscope."""
+    if len(sys.argv) > 1 and sys.argv[1] in ('-h', '--help'):
+        print_help()
+        return 0
+
     try:
         scope = Oscilloscope()
         scope.setup()
         scope.open_handle()
 
-        # Upload firmware if needed
         if not scope.is_device_firmware_present:
             scope.flash_firmware()
 
-        # Get and print serial number
-        serial = scope.get_serial_number()
-        print(serial)
+        serial = scope.get_serial_number_string()
+        if serial:
+            print(serial)
+        else:
+            print("Could not read serial number", file=sys.stderr)
+            return 1
 
         scope.close_handle()
         return 0
 
     except Exception as e:
-        sys.stderr.write(f"Error: {e}\n")
+        print(f"Error: {e}", file=sys.stderr)
         return 1
 
 

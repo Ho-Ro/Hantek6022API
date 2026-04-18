@@ -3,3 +3,6 @@ udev/60-hantek6022api.rules usr/lib/udev/rules.d/
 
 # Install AppStream metadata
 debian/com.github.ho-ro.hantek6022api.metainfo.xml usr/share/metainfo/
+
+# Install MAN pages
+man/*.1 usr/share/man/man1

@@ -1,0 +1,38 @@
+.TH CAPTURE_6022 1 "April 2026" "hantek6022api 2.10.9" "User Commands"
+.SH NAME
+capture_6022 \- capture data from Hantek 6022BE/BL oscilloscope
+.SH SYNOPSIS
+.B capture_6022
+[\fB\-d\fR [\fIDOWNSAMPLE\fR]] [\fB\-g\fR] [\fB\-o\fR \fIOUTFILE\fR] [\fB\-r\fR \fIRATE\fR] [\fB\-t\fR \fITIME\fR] [\fB\-x\fR \fICH1\fR] [\fB\-y\fR \fICH2\fR]
+.SH DESCRIPTION
+Capture data from both channels of a Hantek 6022BE/BL oscilloscope over
+a specified time period with optional downsampling.
+.SH OPTIONS
+.TP
+\fB\-d\fR [\fIDOWNSAMPLE\fR], \fB\-\-downsample\fR [\fIDOWNSAMPLE\fR]
+Downsample by factor (default: 256 if no value given).
+.TP
+\fB\-g\fR, \fB\-\-german\fR
+Use comma as decimal separator.
+.TP
+\fB\-o\fR \fIOUTFILE\fR, \fB\-\-outfile\fR \fIOUTFILE\fR
+Write data to OUTFILE (default: stdout).
+.TP
+\fB\-r\fR \fIRATE\fR, \fB\-\-rate\fR \fIRATE\fR
+Sample rate in kS/s (20, 32, 50, 64, 100, 128, 200, default: 20).
+.TP
+\fB\-t\fR \fITIME\fR, \fB\-\-time\fR \fITIME\fR
+Capture time in seconds (default: 1.0).
+.TP
+\fB\-x\fR \fICH1\fR, \fB\-\-ch1\fR \fICH1\fR
+Gain of channel 1 (1, 2, 5, 10, default: 1).
+.TP
+\fB\-y\fR \fICH2\fR, \fB\-\-ch2\fR \fICH2\fR
+Gain of channel 2 (1, 2, 5, 10, default: 1).
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Show help message and exit.
+.SH SEE ALSO
+.BR calibrate_6022 (1),
+.BR get_serial_number_6022 (1),
+.BR upload_firmware_6022 (1)

@@ -4,17 +4,20 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hantek6022api"
-version = "2.10.8" # Update this to match your current version
+version = "2.10.9" # Update this to match your current version
 authors = [
   {name = "Martin Homuth-Rosemann", email = "Ho-Ro@users.github.com"},
 ]
 description = "Hantek 6022BE Python API for Windows and Linux."
 readme = "README.md"
-license = {text = "GPL-3.0-or-later"}
 requires-python = ">=3.6"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: POSIX :: Linux",
+    "Operating System :: POSIX :: BSD",
+    "Operating System :: POSIX",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
 ]
 dependencies = [
     "libusb1>=1.0",

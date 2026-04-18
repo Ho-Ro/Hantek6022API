@@ -1,9 +1,4 @@
-
-
-
 PACKAGE_NAME = hantek6022api
-
-
 
 all: firmware pyht6022
 
@@ -24,7 +19,6 @@ BUILD_DIR = build
 DIST_DIR = dist
 PYHT6022_DIR = PyHT6022
 EGG_INFO_DIR = *.egg-info
-
 
 
 .PHONY: fw_DSO6021
@@ -55,7 +49,7 @@ fx2upload:
 # update the changelog from git
 .PHONY:	changelog
 changelog:
-	git log --pretty="%cs: %s [%h]" > CHANGELOG
+	git log --pretty="%cs: %s [%h]" > changelog
 
 
 # firmware version synchronisation to OpenHantek
@@ -76,10 +70,10 @@ pyht6022: firmware
 deb:	firmware changelog
 	@echo "Building Debian package..."
 	debuild -us -uc -b
-	mkdir -p $(DEB_DIST_DIR)
-	rm -f $(DEB_DIST_DIR)/*
-	mv ../hantek6022api_* $(DEB_DIST_DIR)
-	ls -l $(DEB_DIST_DIR)/hantek6022api_*.deb
+	@mkdir -p $(DEB_DIST_DIR)
+	@rm -f $(DEB_DIST_DIR)/*
+	@mv ../hantek6022api_* $(DEB_DIST_DIR)
+	@ls -l $(DEB_DIST_DIR)/hantek6022api_*.deb
 
 
 # Install the latest version of *.deb package
@@ -95,7 +89,6 @@ debinstall:
 debuninstall:
 	@echo "Uninstalling Debian package..."
 	sudo dpkg --purge hantek6022api
-
 
 
 # remove all compiler and package build artefacts
@@ -119,7 +112,6 @@ clean:
 .PHONY:	distclean
 distclean: clean
 	-rm -f *.deb
-
 
 
 .PHONY: init

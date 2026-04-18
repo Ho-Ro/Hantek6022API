@@ -1,4 +1,4 @@
-hantek6022api (2.10.8-1) experimental; urgency=medium
+hantek6022api (2.10.9-1) UNRELEASED; urgency=medium
 
   * Initial release with pyproject.toml.
 
