@@ -225,7 +225,7 @@ class Oscilloscope(object):
         if not self.device and not self.setup():
             return False
         self.device_handle = self.device.open()
-        if os.name == 'posix' and self.device_handle.kernelDriverActive(0):
+        if os.name == 'posix' and not os.uname().sysname == 'Darwin' and self.device_handle.kernelDriverActive(0):
             self.device_handle.detachKernelDriver(0)
         try:
             self.device_handle.claimInterface(0)

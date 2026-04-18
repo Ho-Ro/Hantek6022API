@@ -1,3 +1,4 @@
+2026-04-18: change build to get full changelog [fc1432c]
 2026-04-18: 2.10.9: add man pages; sync FW version of python module with Firmware [8650d86]
 2026-04-17: next try... [a2db0ca]
 2026-04-17: fix runner [88763b3]
