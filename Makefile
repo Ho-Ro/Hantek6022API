@@ -121,12 +121,12 @@ init:
 
 # transfer the needed hex files to OpenHantek
 .PHONY: xfer
-xfer: all
+xfer: firmware
 	cp $(FWDSO6021)/dso6021-firmware.hex \
 	../OpenHantek6022/openhantek/res/firmware
 	cp $(FWDSO6022BE)/dso6022be-firmware.hex \
 	../OpenHantek6022/openhantek/res/firmware
 	cp $(FWDSO6022BL)/dso6022bl-firmware.hex \
 	../OpenHantek6022/openhantek/res/firmware
-	cp $(FIRMWARE)/dso602x_fw_version.h \
+	cp $(FIRMWARE_DIR)/dso602x_fw_version.h \
 	../OpenHantek6022/openhantek/res/firmware
