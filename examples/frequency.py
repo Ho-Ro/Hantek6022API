@@ -2,8 +2,8 @@
 """
 Thin wrapper, the implementation lives in PyHT6022.frequency.
 
-Legacy name, same tool as 'frequency.py' / the installed 'frequency_6022'
-command, kept because it is referenced in the documentation.
+Run directly from a checkout (the PyHT6022 symlink in this directory makes
+the package importable) or use the installed 'frequency_6022' command.
 """
 
 import sys

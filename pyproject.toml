@@ -41,6 +41,7 @@ include-package-data = true
 calibrate_6022 = "PyHT6022.calibrate:main"
 capture_6022 = "PyHT6022.capture:main"
 #fft_from_capture_6022 = "PyHT6022.fft_from_capture:main"
+frequency_6022 = "PyHT6022.frequency:main"
 get_serial_number_6022 = "PyHT6022.get_serial_number:main"
 #plot_from_capture_6022 = "PyHT6022.plot_from_capture:main"
 upload_firmware_6022 = "PyHT6022.upload_firmware:main"
