@@ -11,10 +11,18 @@ which codes the frequency into a single byte sent with vendor request 0xe6
     byte 201..255   -> 100...5500 Hz, step 100 Hz
     byte 1..100     ->   1...100 kHz, step 1 kHz
 
-A requested value between two steps is rounded to the nearest representable
-frequency and a warning is printed to stderr; --min sets the smallest
-representable frequency >= FREQ (433 -> 440 Hz), --max the largest one <= FREQ
-(433 -> 430 Hz). With --exact such a value is rejected instead.
+The firmware does not generate the coded frequency itself: it loads Timer2 with
+the auto reload value 2000000 // coded (scope6022.inc:297) and toggles the pin
+on every overflow, so the actual output of coded frequency c is
+2 MHz / (2000000 // c) -- only coded frequencies that divide the 2 MHz
+reference are produced exactly (32, 100, 500, 1000, 4000, 8000, 20000, 40000,
+80000, 100000 Hz...), the others land on the next higher divisor, e.g. every
+coded value 77000...80000 Hz yields 80000 Hz.
+
+A requested value between two actual outputs is rounded to the nearest one and
+a warning is printed to stderr; --min sets the smallest actual output >= FREQ
+(78000 -> 80000 Hz), --max the largest one <= FREQ (78000 -> 76923 Hz). With
+--exact such a value is rejected instead.
 
 After setting the frequency the program keeps its USB connection to the scope
 open (-t TIME seconds, or until ^C) so the port stays active and the output
@@ -27,17 +35,27 @@ import argparse
 import sys
 import time
 
+from fractions import Fraction
+
 from PyHT6022.LibUsbScope import Oscilloscope
 
 # the firmware rejects everything outside this range (set_calibration_pulse())
 MIN_FREQUENCY = 32
 MAX_FREQUENCY = 100000
 
+# the firmware toggles the calibration pin once per Timer2 overflow; Timer2 runs
+# at 2 MHz in the calibration use case, so the output is quantized to the
+# divisors of this reference (actual = TIMER2_REFERENCE / (TIMER2_REFERENCE // coded))
+TIMER2_REFERENCE = 2000000            # Hz
+
 
 def representable_frequencies():
     """
-    All frequencies in Hz that the firmware can generate.
-    :return: sorted list of frequencies, see the coding table above.
+    All *coded* frequencies in Hz -- the value put into the frequency byte.
+
+    The actual output is quantized to the divisors of the 2 MHz reference, see
+    actual_output_frequency() and resolve_frequency().
+    :return: sorted list of coded frequencies, see the coding table above.
     """
     return sorted({32,
                    *range(40, 1000, 10),            # 40...990 Hz, 10 Hz steps
@@ -45,40 +63,80 @@ def representable_frequencies():
                    *range(1000, 100001, 1000)})     # 1...100 kHz, 1 kHz steps
 
 
-def nearest_frequency(frequency):
-    """Return the representable frequency closest to frequency (ties round up)."""
-    return min(representable_frequencies(),
-               key=lambda value: (abs(value - frequency), -value))
+def format_frequency(frequency):
+    """Render a frequency (int or Fraction) for messages, 2 decimals if not exact."""
+    if not isinstance(frequency, Fraction):
+        frequency = Fraction(frequency)
+    if frequency.denominator == 1:
+        return f'{frequency.numerator} Hz'
+    return f'{frequency.numerator / frequency.denominator:.2f} Hz'
+
+
+def actual_output_frequency(coded_frequency):
+    """
+    Actual output frequency for a coded frequency (int or Fraction), as Fraction.
+
+    The firmware loads Timer2 with the auto reload value 2000000 // coded
+    (scope6022.inc:297) and toggles the calibration pin on every overflow, so
+    the output is quantized to the divisors of the 2 MHz reference and is only
+    exact when the coded frequency divides 2 MHz.
+    """
+    return Fraction(TIMER2_REFERENCE, TIMER2_REFERENCE // coded_frequency)
 
 
 def resolve_frequency(frequency, exact=False, rounding='nearest'):
     """
-    Map a requested frequency onto the representable ones.
+    Map a requested frequency onto the actual output of the frequency counter.
+
+    The frequency byte codes values up to 100 kHz (see the module docstring),
+    but the firmware only produces the divisors of its 2 MHz reference exactly;
+    every coded value 77000...80000 Hz e.g. yields 80000 Hz.  The chosen coded
+    value is the one whose actual output is nearest to, or the smallest above
+    / the largest below, the request.
+
     :param frequency: requested frequency in Hz.
-    :param exact: reject frequencies that cannot be set exactly.
-    :param rounding: 'nearest' (default, ties round up), 'above' (set the
-                     smallest representable frequency >= frequency) or 'below'
-                     (set the largest representable frequency <= frequency).
-    :return: (frequency to set, warning text or None)
-    :raise ValueError: if exact is True and the frequency is not representable.
+    :param exact: reject frequencies that have no exact actual output.
+    :param rounding: 'nearest' (default, ties round up), 'above' (smallest
+                     actual output >= frequency) or 'below' (largest actual
+                     output <= frequency).
+    :return: (coded frequency to send, actual output as Fraction, warning or None)
+    :raise ValueError: if exact is True and no actual output equals frequency.
     """
     if rounding not in ('nearest', 'above', 'below'):
         raise ValueError(f'invalid rounding mode {rounding!r}')
-    values = representable_frequencies()
-    if frequency in values:
-        return frequency, None
+
+    # (actual output, smallest coded value producing it), ascending; the actual
+    # output rises because the reload value 2000000 // coded shrinks
+    targets = []
+    for coded in representable_frequencies():
+        actual = actual_output_frequency(coded)
+        if not targets or targets[-1][0] != actual:
+            targets.append((actual, coded))
+
+    if any(actual == frequency for actual, _ in targets):
+        coded = next(c for actual, c in targets if actual == frequency)
+        return coded, Fraction(frequency), None
+
     if exact:
-        lower = max(value for value in values if value <= frequency)
-        upper = min(value for value in values if value >= frequency)
-        raise ValueError(f'{frequency} Hz cannot be set exactly, '
-                         f'nearest: {lower} Hz or {upper} Hz')
+        lower = max((actual for actual, _ in targets if actual < frequency),
+                    default=None)
+        upper = min((actual for actual, _ in targets if actual > frequency),
+                    default=None)
+        neighbour = ' or '.join(format_frequency(value)
+                                for value in (lower, upper) if value is not None)
+        raise ValueError(f'{frequency} Hz cannot be produced exactly, '
+                         f'nearest actual outputs: {neighbour}')
+
     if rounding == 'above':
-        target = min(value for value in values if value >= frequency)
+        target = next(t for t in targets if t[0] >= frequency)
     elif rounding == 'below':
-        target = max(value for value in values if value <= frequency)
+        target = next(t for t in reversed(targets) if t[0] <= frequency)
     else:
-        target = nearest_frequency(frequency)
-    return target, f'{frequency} Hz is not representable, using {target} Hz'
+        target = min(targets, key=lambda t: (abs(t[0] - frequency), -t[0]))
+    actual, coded = target
+    return (coded, actual,
+            f'{frequency} Hz is not representable, '
+            f'using {format_frequency(actual)}')
 
 
 def build_arg_parser():
@@ -95,18 +153,18 @@ def build_arg_parser():
     parser.add_argument(
         '-e', '--exact',
         action='store_true',
-        help='fail if FREQ is not representable instead of rounding it'
+        help='fail if FREQ cannot be produced exactly instead of rounding it'
     )
     rounding = parser.add_mutually_exclusive_group()
     rounding.add_argument(
         '--min',
         action='store_true',
-        help='set the smallest representable frequency >= FREQ (433 -> 440 Hz)'
+        help='set the smallest actual output frequency >= FREQ (78000 -> 80000 Hz)'
     )
     rounding.add_argument(
         '--max',
         action='store_true',
-        help='set the largest representable frequency <= FREQ (433 -> 430 Hz)'
+        help='set the largest actual output frequency <= FREQ (78000 -> 76923 Hz)'
     )
     parser.add_argument(
         '-t', '--time',
@@ -135,7 +193,7 @@ def main(args=None):
         parser.error('--time must be positive')
 
     try:
-        frequency, warning = resolve_frequency(
+        coded_frequency, actual_frequency, warning = resolve_frequency(
             options.frequency,
             options.exact,
             'above' if options.min else 'below' if options.max else 'nearest')
@@ -156,11 +214,11 @@ def main(args=None):
             sys.stderr.write('Upload firmware...\n')
             scope.flash_firmware()
 
-        if not scope.set_calibration_frequency(frequency):
-            sys.stderr.write(f'error: cannot set {frequency} Hz\n')
+        if not scope.set_calibration_frequency(coded_frequency):
+            sys.stderr.write(f'error: cannot set {coded_frequency} Hz\n')
             return 1
 
-        print(f'calibration frequency: {frequency} Hz')
+        print(f'calibration frequency: {format_frequency(actual_frequency)}')
 
         # keep the USB connection open so the port does not autosuspend and
         # the (software generated) calibration output keeps running

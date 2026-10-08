@@ -10,10 +10,16 @@ Set the calibration output frequency on the front panel GND/probe calibration
 output of a Hantek 6022BE/BL oscilloscope. The firmware accepts only specific
 discrete values between 32 Hz and 100 kHz.
 .P
-A value between two steps is rounded to the nearest representable frequency
-with a warning on stderr; \fB\-\-min\fR sets the smallest representable
-frequency >= \fIFREQ\fR (round up), \fB\-\-max\fR the largest one <= \fIFREQ\fR
-(round down); \fB\-\-exact\fR rejects such values outright.
+The firmware does not generate these values itself: it loads Timer2 with the
+auto reload value 2000000 // coded and toggles the pin on every overflow, so
+the actual output of a coded value is quantized to the divisors of the 2 MHz
+reference (e.g. every coded value 77000...80000 Hz yields 80000 Hz).
+.P
+A value between two actual outputs is rounded to the nearest one, with a
+warning on stderr; \fB\-\-min\fR picks the smallest actual output >= \fIFREQ\fR
+(round up, e.g. 78000 Hz -> 80000 Hz), \fB\-\-max\fR the largest actual output
+<= \fIFREQ\fR (round down, e.g. 78000 Hz -> 76923 Hz); \fB\-\-exact\fR rejects
+values that cannot be produced exactly.
 .P
 After the frequency is set the program keeps its USB connection to the scope
 open: until \fB\-t\fR seconds have passed, or (without \fB\-t\fR) until it is
@@ -27,16 +33,16 @@ CPU and freezes the software generated output.
 Show help message and exit.
 .TP
 \fB\-e\fR, \fB\-\-exact\fR
-Fail if \fIFREQ\fR is not representable instead of rounding it to the
-nearest supported frequency.
+Reject \fIFREQ\fR if it cannot be produced exactly instead of rounding it to
+the nearest actual output; the nearest actual outputs are listed on stderr.
 .TP
 \fB\-\-min\fR
-Set the smallest supported frequency that is >= \fIFREQ\fR
-(round non-representable values up, e.g. 433 Hz -> 440 Hz).
+Set the smallest actual output frequency that is >= \fIFREQ\fR
+(round up, e.g. 78000 Hz -> 80000 Hz).
 .TP
 \fB\-\-max\fR
-Set the largest supported frequency that is <= \fIFREQ\fR
-(round non-representable values down, e.g. 433 Hz -> 430 Hz).
+Set the largest actual output frequency that is <= \fIFREQ\fR
+(round down, e.g. 78000 Hz -> 76923 Hz).
 .TP
 \fB\-t\fR \fITIME\fR, \fB\-\-time\fR \fITIME\fR
 Hold the USB connection open for TIME seconds after setting the frequency;

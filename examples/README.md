@@ -44,19 +44,23 @@ positional arguments:
 
 options:
   -h, --help       show this help message and exit
-  -e, --exact      fail if FREQ is not representable instead of rounding it
-  --min            set the smallest representable frequency >= FREQ (433 -> 440 Hz)
-  --max            set the largest representable frequency <= FREQ (433 -> 430 Hz)
+  -e, --exact      fail if FREQ cannot be produced exactly instead of rounding it
+  --min            set the smallest actual output frequency >= FREQ (78000 -> 80000 Hz)
+  --max            set the largest actual output frequency <= FREQ (78000 -> 76923 Hz)
   -t, --time TIME  hold the USB connection open for TIME seconds so the calibration output keeps
                    running (default: until interrupted)
 ```
 Sets the calibration output between 32 Hz and 100 kHz. The firmware accepts only
 32 Hz, 40...990 Hz in 10 Hz steps, 100...5500 Hz in 100 Hz steps and
-1...100 kHz in 1 kHz steps. A value in between is rounded to the nearest one
-(a warning is printed to stderr); `--min` instead sets the smallest
-representable frequency >= FREQ, `--max` the largest one <= FREQ.
-With `--exact` such a value is rejected and the nearest supported frequencies
-are listed instead.
+1...100 kHz in 1 kHz steps. It does not generate these values itself: it loads
+Timer2 with `2000000 // coded` and toggles the pin on every overflow, so the
+*actual* output is quantized to the divisors of the 2 MHz reference (e.g.
+everything 77000...80000 Hz yields 80000 Hz). The command picks the coded value
+whose actual output is nearest to FREQ and prints the real output; if it differs
+from FREQ a warning is printed to stderr. `--min`/`--max` instead pick the
+smallest actual output >= FREQ / the largest actual output <= FREQ. With
+`--exact` a frequency that cannot be produced exactly is rejected and the
+nearest actual outputs are listed instead.
 
 After setting the frequency the program keeps its USB connection to the scope
 open (`-t TIME` seconds, or until `^C`) so the port stays active: an idle port

@@ -142,10 +142,15 @@ the USB, so the device can never be *bricked*.
 The calibration output (GND/probe connector pin) can generate a square wave
 between 32 Hz and 100 kHz. The firmware accepts only quantized values:
 32 Hz, 40...990 Hz in 10 Hz steps, 100...5500 Hz in 100 Hz steps
-and 1...100 kHz in 1 kHz steps. The `frequency_6022` command sets this output
-(rounds a value in between to the nearest supported one and warns on stderr,
-`--min`/`--max` instead set the next supported frequency above/below FREQ,
-`--exact` rejects it instead, see `man frequency_6022`):
+and 1...100 kHz in 1 kHz steps. The firmware does not generate these values
+itself: it loads Timer2 with 2000000 // coded and toggles the pin on every
+overflow, so the *actual* output of a coded value is quantized to the divisors
+of the 2 MHz reference (e.g. everything 77000...80000 Hz yields 80000 Hz). The
+`frequency_6022` command picks the coded value whose actual output is nearest
+to FREQ and prints the real output (warns on stderr if it differs from FREQ,
+`--min`/`--max` instead pick the smallest actual output above / largest below
+FREQ, `--exact` rejects FREQ if it cannot be produced exactly, see
+`man frequency_6022`):
 
     frequency_6022 400
 
