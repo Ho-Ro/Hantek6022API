@@ -10,11 +10,26 @@ import usb1
 
 import numpy as np
 
-from struct import pack
+from struct import pack, error as struct_error
 
 from PyHT6022.Firmware import dso6021_firmware,dso6022be_firmware, dso6022bl_firmware, fx2_ihex_to_control_packets
 
 from PyHT6022.Firmware.version import firmware_version as FW_VER
+
+
+def _pack_byte(value, name):
+    """
+    Pack a single byte sized command argument before sending it to the device.
+    :param value: The value to pack.
+    :param name: The name of the argument, used in the error message.
+    :return: The value packed into one unsigned byte.
+    :raise ValueError: If the value is not an integer in the range 0 ... 255.
+    """
+    try:
+        return pack("B", value)
+    except struct_error as error:
+        raise ValueError(f'{name} must be an integer in the range 0 ... 255, got {value!r}') from error
+
 
 class Oscilloscope(object):
     # keep in sync with "FIRMWARE_VERSION" in "PyHT6022/Firmware/DSO6022BE/descriptor.inc"
@@ -828,13 +843,14 @@ class Oscilloscope(object):
                            Other values are not supported.
         :param timeout:
         :return: True if successful. This method may assert or raise various libusb errors if something went wrong.
+        :raise ValueError: if rate_index does not fit into one unsigned byte.
         """
         if not self.device_handle:
             assert self.open_handle()
         bytes_written = self.device_handle.controlWrite(0x40, self.SET_SAMPLE_RATE_REQUEST,
                                                         self.SET_SAMPLE_RATE_VALUE,
                                                         self.SET_SAMPLE_RATE_INDEX,
-                                                        pack("B", rate_index), timeout=timeout)
+                                                        _pack_byte(rate_index, 'rate_index'), timeout=timeout)
         assert bytes_written == 0x01
         return True
 
@@ -860,16 +876,18 @@ class Oscilloscope(object):
         :param nchannels: The number of active channels.  This is 1 or 2.
         :param timeout: (OPTIONAL).
         :return: True if successful. This method may assert or raise various libusb errors if something went wrong.
+        :raise ValueError: if nchannels is neither 1 nor 2.
         """
         if not self.supports_single_channel:
             return False
-        assert nchannels == 1 or nchannels == 2
+        if nchannels not in (1, 2):
+            raise ValueError(f'nchannels must be 1 or 2, got {nchannels!r}')
         if not self.device_handle:
             assert self.open_handle()
         bytes_written = self.device_handle.controlWrite(0x40, self.SET_NUMCH_REQUEST,
                                                         self.SET_NUMCH_VALUE,
                                                         self.SET_NUMCH_INDEX,
-                                                        pack("B", nchannels), timeout=timeout)
+                                                        _pack_byte(nchannels, 'nchannels'), timeout=timeout)
         assert bytes_written == 0x01
         self.num_channels = nchannels
         return True
@@ -889,13 +907,14 @@ class Oscilloscope(object):
 
         :param timeout: (OPTIONAL).
         :return: True if successful. This method may assert or raise various libusb errors if something went wrong.
+        :raise ValueError: if range_index does not fit into one unsigned byte.
         """
         if not self.device_handle:
             assert self.open_handle()
         bytes_written = self.device_handle.controlWrite(0x40, self.SET_CH1_VR_REQUEST,
                                                         self.SET_CH1_VR_VALUE,
                                                         self.SET_CH1_VR_INDEX,
-                                                        pack("B", range_index), timeout=timeout)
+                                                        _pack_byte(range_index, 'range_index'), timeout=timeout)
         assert bytes_written == 0x01
         return True
 
@@ -914,13 +933,14 @@ class Oscilloscope(object):
 
         :param timeout: (OPTIONAL).
         :return: True if successful. This method may assert or raise various libusb errors if something went wrong.
+        :raise ValueError: if range_index does not fit into one unsigned byte.
         """
         if not self.device_handle:
             assert self.open_handle()
         bytes_written = self.device_handle.controlWrite(0x40, self.SET_CH2_VR_REQUEST,
                                                         self.SET_CH2_VR_VALUE,
                                                         self.SET_CH2_VR_INDEX,
-                                                        pack("B", range_index), timeout=timeout)
+                                                        _pack_byte(range_index, 'range_index'), timeout=timeout)
         assert bytes_written == 0x01
         return True
 
@@ -928,7 +948,11 @@ class Oscilloscope(object):
     def set_calibration_frequency(self, cal_freq, timeout=0):
         """
         Set the frequency of the calibration output.
-        :param cal_freq: 32 Hz <= cal_freq <= 100 kHz
+        :param cal_freq: 32 Hz <= cal_freq <= 100 kHz. A value between two representable
+                         frequencies is rounded to the nearest one (ties round up),
+                         5550...5749 Hz -> 5500 Hz, 5750...5999 Hz -> 6000 Hz.
+                         Only exception: 35 Hz is coded as 40 Hz, to stay byte compatible
+                         with the sigrok firmware coding.
         The frequency will be coded into one byte for the Oscilloscope object.
           0 -> 100 Hz (be compatible with sigrok FW)
           1..100 -> 1..100 kHz
@@ -937,17 +961,22 @@ class Oscilloscope(object):
           104..200 -> 40..1000 Hz, step = 10 Hz ( calfreq = 10*(freq-100) )
           201..255 -> 100..5500 Hz, step = 100 Hz ( calfreq = 100*(freq-200) )
         :param timeout: (OPTIONAL).
-        :return: True if successful. This method may assert or raise various libusb errors if something went wrong.
+        :return: True if successful, False if cal_freq is outside 32 Hz ... 100 kHz.
+                 May assert or raise various libusb errors if something went wrong.
+        :raise ValueError: if the coded frequency does not fit into one unsigned byte.
         """
         if cal_freq < 32 or cal_freq > 100000:
             return False
 
         if cal_freq < 1000:
-            cal_freq_byte = int((cal_freq + 5) // 10) + 100 # 103...199 -> 32...990 Hz
-        elif cal_freq < 5600:
-            cal_freq_byte = int((cal_freq + 50) // 100) + 200 # 201...255 -> 100...5500 Hz
+            cal_freq_byte = int((cal_freq + 5) // 10) + 100 # 103...200 -> 32...1000 Hz
+        elif cal_freq < 5750:
+            # 201...255 -> 100...5500 Hz; the rounding result would exceed the byte for
+            # 5550...5749 Hz, clamp it to 255 (5500 Hz) which is the nearest
+            # representable frequency for all these values
+            cal_freq_byte = min(int((cal_freq + 50) // 100) + 200, 255)
         else:
-            cal_freq_byte = int((cal_freq + 500) // 1000 ) # 1...100 -> 1...100 kHz
+            cal_freq_byte = int((cal_freq + 500) // 1000 ) # 6...100 -> 6...100 kHz
 
         if not self.device_handle:
             assert self.open_handle()
@@ -955,7 +984,7 @@ class Oscilloscope(object):
         bytes_written = self.device_handle.controlWrite(0x40, self.SET_CAL_FREQ_REQUEST,
                                                         self.SET_CAL_FREQ_VALUE,
                                                         self.SET_CAL_FREQ_INDEX,
-                                                        pack("B", cal_freq_byte), timeout=timeout)
+                                                        _pack_byte(cal_freq_byte, 'cal_freq'), timeout=timeout)
         assert bytes_written == 0x01
         return True
 
@@ -970,14 +999,16 @@ class Oscilloscope(object):
         0x11: CH2 DC, CH1 DC
         :param timeout: (OPTIONAL).
         :return: True if successful. This method may assert or raise various libusb errors if something went wrong.
+        :raise ValueError: if ac_dc is not one of AC_AC, AC_DC, DC_AC, DC_DC.
         """
-        assert ac_dc == self.AC_AC or ac_dc == self.AC_DC or ac_dc == self.DC_AC or ac_dc == self.DC_DC
+        if ac_dc not in (self.AC_AC, self.AC_DC, self.DC_AC, self.DC_DC):
+            raise ValueError(f'ac_dc must be AC_AC, AC_DC, DC_AC or DC_DC, got {ac_dc!r}')
         if not self.device_handle:
             assert self.open_handle()
         bytes_written = self.device_handle.controlWrite(0x40, self.SET_AC_DC_REQUEST,
                                                         self.SET_AC_DC_VALUE,
                                                         self.SET_AC_DC_INDEX,
-                                                        pack("B", ac_dc), timeout=timeout)
+                                                        _pack_byte(ac_dc, 'ac_dc'), timeout=timeout)
         assert bytes_written == 0x01
         self.ac_dc_status = ac_dc
         return True
@@ -991,15 +1022,17 @@ class Oscilloscope(object):
         0x01: DC
         :param timeout: (OPTIONAL).
         :return: True if successful. This method may assert or raise various libusb errors if something went wrong.
+        :raise ValueError: if ac_dc is neither AC (0) nor DC (1).
         """
-        assert ac_dc == self.AC or ac_dc == self.DC
+        if ac_dc not in (self.AC, self.DC):
+            raise ValueError(f'ac_dc must be AC (0) or DC (1), got {ac_dc!r}')
         if not self.device_handle:
             assert self.open_handle()
         ac_dc_new = ( self.ac_dc_status & 0xF0 ) | ac_dc
         bytes_written = self.device_handle.controlWrite(0x40, self.SET_AC_DC_REQUEST,
                                                         self.SET_AC_DC_VALUE,
                                                         self.SET_AC_DC_INDEX,
-                                                        pack("B", ac_dc_new), timeout=timeout)
+                                                        _pack_byte(ac_dc_new, 'ac_dc_new'), timeout=timeout)
         assert bytes_written == 0x01
         self.ac_dc_status = ac_dc_new # remember the latest status
         return True
@@ -1013,15 +1046,17 @@ class Oscilloscope(object):
         0x01: DC
         :param timeout: (OPTIONAL).
         :return: True if successful. This method may assert or raise various libusb errors if something went wrong.
+        :raise ValueError: if ac_dc is neither AC (0) nor DC (1).
         """
-        assert ac_dc == self.AC or ac_dc == self.DC
+        if ac_dc not in (self.AC, self.DC):
+            raise ValueError(f'ac_dc must be AC (0) or DC (1), got {ac_dc!r}')
         if not self.device_handle:
             assert self.open_handle()
         ac_dc_new = ( self.ac_dc_status & 0x0F ) | ac_dc << 4
         bytes_written = self.device_handle.controlWrite(0x40, self.SET_AC_DC_REQUEST,
                                                         self.SET_AC_DC_VALUE,
                                                         self.SET_AC_DC_INDEX,
-                                                        pack("B", ac_dc_new), timeout=timeout)
+                                                        _pack_byte(ac_dc_new, 'ac_dc_new'), timeout=timeout)
         assert bytes_written == 0x01
         self.ac_dc_status = ac_dc_new # remember the latest status
         return True
