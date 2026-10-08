@@ -1,3 +1,4 @@
+2026-10-08: update documentation and man pages for the ported tools [1c9fd1f]
 2026-10-08: add the frequency_6022 tool for the calibration frequency output [33386eb]
 2026-10-08: move the command line tools out of examples into the package [f93359a]
 2026-10-08: harden byte packing and fix the calibration frequency boundary [f70844c]
