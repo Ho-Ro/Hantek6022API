@@ -6,6 +6,9 @@ get_serial_number_6022 \- get serial number from Hantek 6022BE/BL oscilloscope
 [\fB\-h\fR]
 .SH DESCRIPTION
 Read and print the unique serial number from a Hantek 6022BE/BL USB oscilloscope.
+The serial number is printed to stdout, the product name and the firmware
+version are printed to stderr, so only the serial number is used when the
+output is piped to another program.
 .SH OPTIONS
 .TP
 \fB\-h\fR, \fB\-\-help\fR
@@ -13,4 +16,5 @@ Show help message and exit.
 .SH SEE ALSO
 .BR calibrate_6022 (1),
 .BR capture_6022 (1),
+.BR frequency_6022 (1),
 .BR upload_firmware_6022 (1)

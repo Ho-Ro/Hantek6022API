@@ -1,5 +1,22 @@
 # List of examples programs
 
+`calibrate_6022.py`, `capture_6022.py`, `frequency.py`, `get_serial_number.py`,
+`set_cal_out_freq_6022.py` and `upload_firmware_6022.py` are thin wrappers, their
+implementation lives in the `PyHT6022` package. The same code is installed as the
+commands `calibrate_6022`, `capture_6022`, `frequency_6022`,
+`get_serial_number_6022` and `upload_firmware_6022`
+(see the corresponding man pages), the wrappers behave identically and can be
+run directly from this directory - the `PyHT6022` symlink here makes the package
+importable. All other programs in this directory are standalone.
+
+## Device information
+
+### `get_serial_number.py`
+```
+Usage: get_serial_number_6022 - get serial number from Hantek 6022BE/BL oscilloscope
+```
+Prints the serial number to stdout, product name and firmware version to stderr.
+
 ## Calibration
 
 ### `calibrate_6022.py`
@@ -16,30 +33,55 @@ options:
 ```
 ## Measure
 
-### `set_cal_out_freq_6022.py`
+### `frequency.py` (legacy name: `set_cal_out_freq_6022.py`)
 ```
-usage: set_cal_out_freq_6022.py FREQ
-with 32 <= FREQ <= 100000
+usage: frequency.py [-h] [-e] [--min | --max] [-t TIME] FREQ
+
+Set the calibration output frequency of Hantek6022
+
+positional arguments:
+  FREQ             calibration frequency in Hz (32 ... 100000)
+
+options:
+  -h, --help       show this help message and exit
+  -e, --exact      fail if FREQ is not representable instead of rounding it
+  --min            set the smallest representable frequency >= FREQ (433 -> 440 Hz)
+  --max            set the largest representable frequency <= FREQ (433 -> 430 Hz)
+  -t, --time TIME  hold the USB connection open for TIME seconds so the calibration output keeps
+                   running (default: until interrupted)
 ```
-Sets the calibration output frequency between 32 Hz and 100 kHz.
+Sets the calibration output between 32 Hz and 100 kHz. The firmware accepts only
+32 Hz, 40...990 Hz in 10 Hz steps, 100...5500 Hz in 100 Hz steps and
+1...100 kHz in 1 kHz steps. A value in between is rounded to the nearest one
+(a warning is printed to stderr); `--min` instead sets the smallest
+representable frequency >= FREQ, `--max` the largest one <= FREQ.
+With `--exact` such a value is rejected and the nearest supported frequencies
+are listed instead.
+
+After setting the frequency the program keeps its USB connection to the scope
+open (`-t TIME` seconds, or until `^C`) so the port stays active: an idle port
+would be autosuspended by the kernel after a few seconds, which parks the FX2
+CPU and freezes the software generated output.
 
 ### `capture_6022.py`
 ```
-usage: capture_6022.py [-h] [-d [DOWNSAMPLE]] [-g] [-o OUTFILE] [-r RATE] [-t TIME] [-x CH1] [-y CH2]
+usage: capture_6022.py [-h] [-d [DOWNSAMPLE]] [-g] [-o OUTFILE] [-r RATE]
+                       [-t TIME] [-x CH1] [-y CH2]
 
 Capture data from both channels of Hantek6022
 
 options:
   -h, --help            show this help message and exit
-  -d [DOWNSAMPLE], --downsample [DOWNSAMPLE]
+  -d, --downsample [DOWNSAMPLE]
                         downsample 256 x DOWNSAMPLE
   -g, --german          use comma as decimal separator
-  -o OUTFILE, --outfile OUTFILE
+  -o, --outfile OUTFILE
                         write the data into OUTFILE (default: stdout)
-  -r RATE, --rate RATE  sample rate in kS/s (20, 32, 50, 64, 100, 128, 200, default: 20)
-  -t TIME, --time TIME  capture time in seconds (default: 1.0)
-  -x CH1, --ch1 CH1     gain of channel 1 (1, 2, 5, 10, default: 1)
-  -y CH2, --ch2 CH2     gain of channel 2 (1, 2, 5, 10, default: 1)
+  -r, --rate RATE       sample rate in kS/s (20, 32, 50, 64, 100, 128, 200,
+                        default: 20)
+  -t, --time TIME       capture time in seconds (default: 1.0)
+  -x, --ch1 CH1         gain of channel 1 (1, 2, 5, 10, default: 1)
+  -y, --ch2 CH2         gain of channel 2 (1, 2, 5, 10, default: 1)
 ```
 
 ## Visualise captured values
@@ -100,11 +142,11 @@ usage: upload_firmware_6022.py [-h] [-V VID] [-P PID] [--be | --bl]
 Upload firmware to Hantek6022 devices with different VID:PID
 
 options:
-  -h, --help         show this help message and exit
-  -V VID, --VID VID  set vendor id (hex)
-  -P PID, --PID PID  set product id (hex)
-  --be, --6022be     use DSO-6022BE firmware
-  --bl, --6022bl     use DSO-6022BL firmware
+  -h, --help      show this help message and exit
+  -V, --VID VID   set vendor id (hex)
+  -P, --PID PID   set product id (hex)
+  --be, --6022be  use DSO-6022BE firmware
+  --bl, --6022bl  use DSO-6022BL firmware
 ```
 
 This tool can be used to upload the firmware to devices with

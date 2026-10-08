@@ -1,0 +1,62 @@
+.TH FREQUENCY_6022 1 "April 2026" "hantek6022api 2.10.9" "User Commands"
+.SH NAME
+frequency_6022 \- set calibration output frequency of Hantek 6022BE/BL oscilloscope
+.SH SYNOPSIS
+.B frequency_6022
+[\fB\-h\fR] [\fB\-e\fR] [\fB\-\-min\fR | \fB\-\-max\fR] [\fB\-t\fR \fITIME\fR]
+.I FREQ
+.SH DESCRIPTION
+Set the calibration output frequency on the front panel GND/probe calibration
+output of a Hantek 6022BE/BL oscilloscope. The firmware accepts only specific
+discrete values between 32 Hz and 100 kHz.
+.P
+A value between two steps is rounded to the nearest representable frequency
+with a warning on stderr; \fB\-\-min\fR sets the smallest representable
+frequency >= \fIFREQ\fR (round up), \fB\-\-max\fR the largest one <= \fIFREQ\fR
+(round down); \fB\-\-exact\fR rejects such values outright.
+.P
+After the frequency is set the program keeps its USB connection to the scope
+open: until \fB\-t\fR seconds have passed, or (without \fB\-t\fR) until it is
+interrupted with ^C. As long as the connection is open the USB port stays
+active and the calibration output keeps running. Without this the kernel would
+autosuspend the idle port shortly after the last access, which parks the FX2
+CPU and freezes the software generated output.
+.SH OPTIONS
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Show help message and exit.
+.TP
+\fB\-e\fR, \fB\-\-exact\fR
+Fail if \fIFREQ\fR is not representable instead of rounding it to the
+nearest supported frequency.
+.TP
+\fB\-\-min\fR
+Set the smallest supported frequency that is >= \fIFREQ\fR
+(round non-representable values up, e.g. 433 Hz -> 440 Hz).
+.TP
+\fB\-\-max\fR
+Set the largest supported frequency that is <= \fIFREQ\fR
+(round non-representable values down, e.g. 433 Hz -> 430 Hz).
+.TP
+\fB\-t\fR \fITIME\fR, \fB\-\-time\fR \fITIME\fR
+Hold the USB connection open for TIME seconds after setting the frequency;
+without this option it is held until the program is interrupted with ^C.
+.SH ARGUMENTS
+.TP
+\fIFREQ\fR
+Calibration frequency in Hz (32 ... 100000).
+.P
+Supported steps:
+.IP \(bu 4
+32 Hz
+.IP \(bu 4
+40...990 Hz in 10 Hz steps
+.IP \(bu 4
+100...5500 Hz in 100 Hz steps
+.IP \(bu 4
+1000...100000 Hz in 1000 Hz steps
+.SH SEE ALSO
+.BR calibrate_6022 (1),
+.BR capture_6022 (1),
+.BR get_serial_number_6022 (1),
+.BR upload_firmware_6022 (1)

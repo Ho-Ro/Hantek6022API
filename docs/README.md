@@ -177,11 +177,13 @@ Values >0x80 increase the offset, values <0x80 make it smaller.
 
 ## Calibration
 
-The calibration values can be determined and set with the program [`examples/calibrate.py`](../examples/calibrate.py):
+The calibration values can be determined and set with the program
+[`calibrate_6022`](../examples/calibrate_6022.py)
+(installed command, the wrapper `examples/calibrate_6022.py` behaves identically):
 
-    usage: calibrate.py [-h] [-c] [-e] [-g]
+    usage: calibrate_6022 [-h] [-c] [-e] [-g]
 
-    optional arguments:
+    options:
       -h, --help           show this help message and exit
       -c, --create_config  create a config file
       -e, --eeprom         store calibration values in eeprom

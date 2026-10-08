@@ -7,10 +7,17 @@ capture_6022 \- capture data from Hantek 6022BE/BL oscilloscope
 .SH DESCRIPTION
 Capture data from both channels of a Hantek 6022BE/BL oscilloscope over
 a specified time period with optional downsampling.
+The offset and gain calibration values from the EEPROM are applied,
+the output is CSV data with the columns time[s], ch1[V], ch2[V],
+written to stdout or to \fIOUTFILE\fR.
+The DC, AC and RMS values of the captured data are printed to stderr.
 .SH OPTIONS
 .TP
 \fB\-d\fR [\fIDOWNSAMPLE\fR], \fB\-\-downsample\fR [\fIDOWNSAMPLE\fR]
-Downsample by factor (default: 256 if no value given).
+Average the samples: without this option every sample is written,
+\fB\-d\fR averages over blocks of 256 samples,
+\fB\-d\fR \fIDOWNSAMPLE\fR averages over blocks of 256 * DOWNSAMPLE samples
+(increases SNR and effective resolution).
 .TP
 \fB\-g\fR, \fB\-\-german\fR
 Use comma as decimal separator.
@@ -34,5 +41,6 @@ Gain of channel 2 (1, 2, 5, 10, default: 1).
 Show help message and exit.
 .SH SEE ALSO
 .BR calibrate_6022 (1),
+.BR frequency_6022 (1),
 .BR get_serial_number_6022 (1),
 .BR upload_firmware_6022 (1)

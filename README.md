@@ -39,9 +39,15 @@ to give you an idea of what they are for.
 If you're on Linux, you're in luck.
 Provided are bindings for libusb to operate this little device with simple python commands.
 If you are a user, you can simply download the latest Debian package from
-[releases](https://github.com/Ho-Ro/Hantek6022API/releases) and use the utilities in
-[examples](https://github.com/Ho-Ro/Hantek6022API/tree/main/examples),
-all tools named `*_6022.py` are copied to `/usr/bin` and are thus globally available.
+[releases](https://github.com/Ho-Ro/Hantek6022API/releases).
+This installs the python modules together with the five user commands
+`calibrate_6022`, `capture_6022`, `frequency_6022`, `get_serial_number_6022`
+and `upload_firmware_6022`
+into `/usr/bin`, they are thus globally available (see the corresponding man pages).
+The scripts `calibrate_6022.py`, `capture_6022.py`, `frequency.py`,
+`get_serial_number.py`, `set_cal_out_freq_6022.py` and
+`upload_firmware_6022.py` in [examples](https://github.com/Ho-Ro/Hantek6022API/tree/main/examples)
+are thin wrappers around the very same code and behave identically.
 
 If you're lucky you can even use the programs without installing anything.
 You just need a working `python3` and the python modules `libusb1`, `matplotlib`, and `numpy`.
@@ -67,8 +73,8 @@ to your udev rules, via
 
     sudo cp 60-hantek-6022-usb.rules /etc/udev/rules.d/
 
-After you've done this, the scope should automatically come up with the correct permissions to be accessed
-without being root user.
+After you've done this, the scope should automatically come up with the correct permissions
+to be accessed without being root user.
 
 The following instructions are tested with Debian stable versions *stretch*, *buster*, *bullseye*, and *bookworm*
 and are executed also automatically by GitHub under Ubuntu (*2204*) after each push to this repo - have a look
@@ -119,19 +125,36 @@ The installed programs can also be uninstalled cleanly with
 
     sudo dpkg -P hantek6022api
 
-You can then look at the scope traces via `capture_6022.py -t 0.01 | plot_from_capture_6022.py`,
+You can then look at the scope traces via `capture_6022 -t 0.01 | examples/plot_from_capture_6022.py`
+(only `capture_6022` is installed, the plot programs are run from `examples`),
 or write your own programs - look at the programs in `examples` as a start.
 
 If you want to make low-level experiments with the python commands you should bootstrap the scope for use:
-With the device plugged in, run `upload_6022_firmware.py` once.
-The *user tools* `*_6022.py` do this automatically at start.
+With the device plugged in, run `upload_firmware_6022` once.
+The *user tools* `calibrate_6022`, `capture_6022`, `frequency_6022`
+and `get_serial_number_6022`
+do this automatically at start.
 
 **Don't Panik!**
 The firmware is uploaded into RAM and is lost after switching off the scope or disconnecting
 the USB, so the device can never be *bricked*.
 
-This simple program sets the calibration output frequency to 400 Hz
-(you can use each even divison of 2 MHz between 32 Hz and 100 kHz).
+The calibration output (GND/probe connector pin) can generate a square wave
+between 32 Hz and 100 kHz. The firmware accepts only quantized values:
+32 Hz, 40...990 Hz in 10 Hz steps, 100...5500 Hz in 100 Hz steps
+and 1...100 kHz in 1 kHz steps. The `frequency_6022` command sets this output
+(rounds a value in between to the nearest supported one and warns on stderr,
+`--min`/`--max` instead set the next supported frequency above/below FREQ,
+`--exact` rejects it instead, see `man frequency_6022`):
+
+    frequency_6022 400
+
+The program keeps its USB connection to the scope open so the calibration output
+keeps running: for `-t TIME` seconds, or (without `-t`) until interrupted with `^C`.
+Without this the kernel would autosuspend the idle USB port after a few seconds,
+which parks the FX2 CPU and freezes the (software generated) calibration output.
+
+The same can be done with the low-level python commands:
 
 ```python
 #!/usr/bin/python3
@@ -215,7 +238,8 @@ or `%APPDATA%\OpenHantek\DSO-6022BE_NNNNNNNNNNNN_calibration.ini` for Windows
 
 Step 2 uses the factory offset calibration values in eeprom.
 Out of the box only offset values are contained in eeprom,
-the program `calibrate_6022.py` (installed in `/usr/bin`) allows to update these values
+the program `calibrate_6022` (installed in `/usr/bin`, `examples/calibrate_6022.py` from a checkout)
+allows to update these values
 in case the offset has changed over time.
 
 Program to calibrate offset and gain of Hantek 6022BE/BL
@@ -225,11 +249,11 @@ Program to calibrate offset and gain of Hantek 6022BE/BL
 
 Configure with command line arguments:
 
-    usage: calibrate_6022.py [-h] [-c] [-e] [-g]
+    usage: calibrate_6022 [-h] [-c] [-e] [-g]
 
-    optional arguments:
+    options:
         -h, --help           show this help message and exit
-        -c, --create_config  create config file
+        -c, --create_config  create a config file
         -e, --eeprom         store calibration values in eeprom
         -g, --measure_gain   interactively measure gain (as well as offset)
 
@@ -237,7 +261,7 @@ Configure with command line arguments:
 
 Apply 0 V to both inputs (e.g. connect both probes to the GND calibration connector) and execute:
 
-    calibrate_6022.py -e
+    calibrate_6022 -e
 
 ### Complete Offset and Gain Calibration
 
@@ -245,7 +269,7 @@ If is also possible to measure and create also gain calibration.
 To calibrate gain you have to apply a well known voltage (setpoint)
 and compare it with the actual value that is read by the scope:
 
-    calibrate_6022.py -ceg
+    calibrate_6022 -ceg
 
 This program guides you through the process.
 You have to apply several different voltages to both input,
@@ -280,28 +304,33 @@ Requested Voltage | Applied Voltage  | Comment
 
 ## Use the device as a data logger
 
-The program `capture_6022.py` (also in `/usr/bin/`) allows to capture both channels over a long time.
+The program `capture_6022` (installed in `/usr/bin`, `examples/capture_6022.py` from a checkout)
+allows to capture both channels over a long time.
 
 The 256 x downsampling option increases the SNR and effective resolution (8bit -> at least 12 bit)
 and allows very long time recording. The program uses the offset and gain calibration from EEPROM.
-It writes the captured data into stdout or an outfile and calculates DC, AC and RMS of the data.
+It writes the captured data as CSV (`time[s], ch1[V], ch2[V]`, no header) into stdout or an outfile
+and prints the DC, AC and RMS values of the data to stderr,
+so the samples can be piped into a plot program.
 
 ```
-usage: capture_6022.py [-h] [-d [DOWNSAMPLE]] [-g] [-o OUTFILE] [-r RATE] [-t TIME] [-x CH1] [-y CH2]
+usage: capture_6022 [-h] [-d [DOWNSAMPLE]] [-g] [-o OUTFILE] [-r RATE]
+                    [-t TIME] [-x CH1] [-y CH2]
 
 Capture data from both channels of Hantek6022
 
 options:
   -h, --help            show this help message and exit
-  -d [DOWNSAMPLE], --downsample [DOWNSAMPLE]
+  -d, --downsample [DOWNSAMPLE]
                         downsample 256 x DOWNSAMPLE
   -g, --german          use comma as decimal separator
-  -o OUTFILE, --outfile OUTFILE
+  -o, --outfile OUTFILE
                         write the data into OUTFILE (default: stdout)
-  -r RATE, --rate RATE  sample rate in kS/s (20, 32, 50, 64, 100, 128, 200, default: 20)
-  -t TIME, --time TIME  capture time in seconds (default: 1.0)
-  -x CH1, --ch1 CH1     gain of channel 1 (1, 2, 5, 10, default: 1)
-  -y CH2, --ch2 CH2     gain of channel 2 (1, 2, 5, 10, default: 1)
+  -r, --rate RATE       sample rate in kS/s (20, 32, 50, 64, 100, 128, 200,
+                        default: 20)
+  -t, --time TIME       capture time in seconds (default: 1.0)
+  -x, --ch1 CH1         gain of channel 1 (1, 2, 5, 10, default: 1)
+  -y, --ch2 CH2         gain of channel 2 (1, 2, 5, 10, default: 1)
 ```
 
 The program `plot_from_capture_6022.py` takes the captured data (either from stdin
