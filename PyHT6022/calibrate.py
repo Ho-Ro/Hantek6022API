@@ -239,7 +239,6 @@ def update_eeprom_calibration(ee_calibration, offlo1, offlo2, offlo_1, offlo_2,
 def parse_arguments():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        prog='calibrate_6022.py',
         description='Measure offset and gain calibration values'
     )
     parser.add_argument("-c", "--create_config", action="store_true",

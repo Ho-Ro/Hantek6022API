@@ -1,3 +1,4 @@
+2026-10-08: harden byte packing and fix the calibration frequency boundary [f70844c]
 2026-04-22: fix Makefile typo [e65d52b]
 2026-04-18: close #30: fix for macOS as macOS doesn't support kernel driver detaching [909d329]
 2026-04-18: change build to get full changelog [fc1432c]

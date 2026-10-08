@@ -16,7 +16,6 @@ from PyHT6022.Firmware import dso6022be_firmware, dso6022bl_firmware
 def parse_arguments(args=None):
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        prog='upload_firmware_6022.py',
         description='Upload firmware to Hantek6022 devices with different VID:PID'
     )
     parser.add_argument(

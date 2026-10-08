@@ -1,27 +1,14 @@
 #!/usr/bin/python3
+"""
+Thin wrapper, the implementation lives in PyHT6022.get_serial_number.
+
+Run directly from a checkout (the PyHT6022 symlink in this directory makes
+the package importable) or use the installed 'get_serial_number_6022' command.
+"""
 
 import sys
-from PyHT6022.LibUsbScope import Oscilloscope
 
-scope = Oscilloscope()
-scope.setup()
-if not scope.open_handle():
-    sys.exit( -1 )
+from PyHT6022.get_serial_number import main
 
-if (not scope.is_device_firmware_present):
-    print( 'upload firmware...' )
-    scope.flash_firmware()
-
-product = scope.get_product_string()
-if product:
-    print( 'product name:', product )
-
-serial = scope.get_serial_number_string()
-if serial:
-    print( 'serial number:', serial )
-
-version = scope.get_fw_version()
-if version:
-    print( 'FW version:', hex( version ) )
-
-scope.close_handle()
+if __name__ == "__main__":
+    sys.exit(main())
