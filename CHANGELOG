@@ -1,3 +1,5 @@
+2026-10-08: regenerate CHANGELOG creation [a8a5c60]
+2026-10-08: retarget the example ihex symlinks to the top level Firmware directory [ad160ae]
 2026-10-08: update documentation and man pages for the ported tools [1c9fd1f]
 2026-10-08: add the frequency_6022 tool for the calibration frequency output [33386eb]
 2026-10-08: move the command line tools out of examples into the package [f93359a]
