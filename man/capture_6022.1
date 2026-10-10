@@ -3,7 +3,7 @@
 capture_6022 \- capture data from Hantek 6022BE/BL oscilloscope
 .SH SYNOPSIS
 .B capture_6022
-[\fB\-d\fR [\fIDOWNSAMPLE\fR]] [\fB\-g\fR] [\fB\-o\fR \fIOUTFILE\fR] [\fB\-r\fR \fIRATE\fR] [\fB\-t\fR \fITIME\fR] [\fB\-x\fR \fICH1\fR] [\fB\-y\fR \fICH2\fR]
+[\fB\-a\fR] [\fB\-\-ac1\fR] [\fB\-\-ac2\fR] [\fB\-d\fR [\fIDOWNSAMPLE\fR]] [\fB\-g\fR] [\fB\-o\fR \fIOUTFILE\fR] [\fB\-r\fR \fIRATE\fR] [\fB\-t\fR \fITIME\fR] [\fB\-x\fR \fICH1\fR] [\fB\-y\fR \fICH2\fR]
 .SH DESCRIPTION
 Capture data from both channels of a Hantek 6022BE/BL oscilloscope over
 a specified time period with optional downsampling.
@@ -11,7 +11,18 @@ The offset and gain calibration values from the EEPROM are applied,
 the output is CSV data with the columns time[s], ch1[V], ch2[V],
 written to stdout or to \fIOUTFILE\fR.
 The DC, AC and RMS values of the captured data are printed to stderr.
+By default the input channels are DC coupled; with \fB\-a\fR they are
+AC coupled.
 .SH OPTIONS
+.TP
+\fB\-a\fR, \fB\-\-ac\fR
+AC couple both input channels (default: DC).
+.TP
+\fB\-\-ac1\fR
+AC couple channel 1 only, channel 2 stays DC coupled.
+.TP
+\fB\-\-ac2\fR
+AC couple channel 2 only, channel 1 stays DC coupled.
 .TP
 \fB\-d\fR [\fIDOWNSAMPLE\fR], \fB\-\-downsample\fR [\fIDOWNSAMPLE\fR]
 Average the samples: without this option every sample is written,

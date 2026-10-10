@@ -10,11 +10,12 @@ voltage values as CSV data to stdout or to a file:
 The offset and gain calibration values from the EEPROM are applied, the
 resulting values are in volts. With '-d' the samples are averaged over
 blocks of 256 samples (increases SNR and effective resolution), with
-'-d DOWNSAMPLE' over DOWNSAMPLE such blocks. DC, AC and RMS of the
+'-d DOWNSAMPLE' over DOWNSAMPLE such blocks. With '-a' both input channels
+are AC coupled instead of DC coupled (see options). DC, AC and RMS of the
 captured data are printed to stderr.
 
-usage: capture_6022 [-h] [-d [DOWNSAMPLE]] [-g] [-o OUTFILE] [-r RATE]
-                    [-t TIME] [-x CH1] [-y CH2]
+usage: capture_6022 [-h] [-a] [--ac1] [--ac2] [-d [DOWNSAMPLE]] [-g]
+                    [-o OUTFILE] [-r RATE] [-t TIME] [-x CH1] [-y CH2]
 """
 
 import argparse
@@ -50,6 +51,21 @@ def build_arg_parser():
 
     parser = argparse.ArgumentParser(
         description='Capture data from both channels of Hantek6022'
+    )
+    parser.add_argument(
+        '-a', '--ac',
+        action='store_true',
+        help='AC couple both channels (CH1 and CH2)'
+    )
+    parser.add_argument(
+        '--ac1',
+        action='store_true',
+        help='AC couple channel 1 only'
+    )
+    parser.add_argument(
+        '--ac2',
+        action='store_true',
+        help='AC couple channel 2 only'
     )
     parser.add_argument(
         '-d', '--downsample',
@@ -178,7 +194,7 @@ class SampleWriter:
                 self.avg2 = 0.0
                 self.timestep += self.tick * size * self.downsample
         else:  # write out every sample
-            for value1, value2 in zip(ch1_scaled, ch2_scaled):
+            for value1, value2 in zip(ch1_scaled, ch2_scaled, strict=True):
                 if self.timestep < self.sample_time:
                     self.write_line(self.timestep, value1, value2)
                 self.timestep += self.tick
@@ -276,6 +292,13 @@ def main(args=None):
     # set the gain for CH1 and CH2
     scope.set_ch1_voltage_range(options.ch1)
     scope.set_ch2_voltage_range(options.ch2)
+    # always start DC coupled to override the setting of a previous run
+    scope.set_ch1_ch2_ac_dc(scope.DC_DC)
+    # AC couple the requested channels
+    if options.ac or options.ac1:
+        scope.set_ch1_ac_dc(scope.AC)
+    if options.ac or options.ac2:
+        scope.set_ch2_ac_dc(scope.AC)
 
     outfile = options.outfile or sys.stdout
     writer = SampleWriter(scope, options.ch1, options.ch2, sample_rate,

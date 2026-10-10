@@ -69,13 +69,14 @@ CPU and freezes the software generated output.
 
 ### `capture_6022.py`
 ```
-usage: capture_6022.py [-h] [-d [DOWNSAMPLE]] [-g] [-o OUTFILE] [-r RATE]
+usage: capture_6022.py [-h] [-a] [-d [DOWNSAMPLE]] [-g] [-o OUTFILE] [-r RATE]
                        [-t TIME] [-x CH1] [-y CH2]
 
 Capture data from both channels of Hantek6022
 
 options:
   -h, --help            show this help message and exit
+  -a, --ac              AC couple both input channels (default: DC)
   -d, --downsample [DOWNSAMPLE]
                         downsample 256 x DOWNSAMPLE
   -g, --german          use comma as decimal separator

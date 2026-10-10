@@ -319,13 +319,16 @@ and prints the DC, AC and RMS values of the data to stderr,
 so the samples can be piped into a plot program.
 
 ```
-usage: capture_6022 [-h] [-d [DOWNSAMPLE]] [-g] [-o OUTFILE] [-r RATE]
-                    [-t TIME] [-x CH1] [-y CH2]
+usage: capture_6022 [-h] [-a] [--ac1] [--ac2] [-d [DOWNSAMPLE]] [-g]
+                    [-o OUTFILE] [-r RATE] [-t TIME] [-x CH1] [-y CH2]
 
 Capture data from both channels of Hantek6022
 
 options:
   -h, --help            show this help message and exit
+  -a, --ac              AC couple both channels (CH1 and CH2)
+  --ac1                 AC couple channel 1 only
+  --ac2                 AC couple channel 2 only
   -d, --downsample [DOWNSAMPLE]
                         downsample 256 x DOWNSAMPLE
   -g, --german          use comma as decimal separator
