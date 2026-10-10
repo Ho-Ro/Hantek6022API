@@ -1,3 +1,6 @@
+2026-10-10: update README, streamline changelog handling [b0cfed7]
+2026-10-10: capture: add --ac, --ac1, --ac2 options [96a8309]
+2026-10-10: fixup CHANGELOG->changelog [7fa6f2c]
 2026-10-08: make frequency_6022 report the actual 2 MHz divisor-grid output [466f8b5]
 2026-10-08: regenerate CHANGELOG creation [e41d020]
 2026-10-08: retarget the example ihex symlinks to the top level Firmware directory [ad160ae]

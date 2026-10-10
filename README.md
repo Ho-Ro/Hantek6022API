@@ -25,11 +25,19 @@ and focusses mainly on Hantek6022BE/BL under Linux (development system: Debian s
 ![Scope Visualisation Example](examples/plot_from_capture.png)
 
 This is a API for Python3 for the ultra-cheap, reasonably usable (and hackable) 6022 DSO,
-with a libusb implementation via libusb1 for Linux.
+with a libusb implementation via libusb1 for Linux. The scope's HW is based on the FX2 CPU
+(Cypress EzUSB) that clocks a dual channel 8-bit ADC and streams the measured data to the PC
+where it is processed and displayed. Both channels are clocked synchronously.
+The sample rate can be selected between 20 kS/s … 48MS/s (theoretically), useful are values
+up to 24 MS/s (i.e. 24 MS/s for 1 channel, 12 MS/s for 2 channels).
+
+The DC-coupled analog frontend consists of a voltage divider 1:10 to raise the input impedance
+to 1 MOhm followed by a voltge limiter and a switchable amplifier (x1, x2, x5, x10) that converts
+the input signal to the valid ADC input range (-0.5V … 0.5V).
 
 The scope can be accessed by instantiating an oscilloscope object.
 Things like voltage divisions and sampling rates can be set by the appropriate methods.
-Please check the provided [example programs](https://github.com/Ho-Ro/Hantek6022API/tree/main/examples),
+Please check the provided [example programs](examples),
 the comments will give you more hints for own experiments.
 Each method has documentation about what it is doing, and hopefully the variable names are clear enough
 to give you an idea of what they are for.
@@ -45,9 +53,8 @@ This installs the python modules together with the five user commands
 and `upload_firmware_6022`
 into `/usr/bin`, they are thus globally available (see the corresponding man pages).
 The scripts `calibrate_6022.py`, `capture_6022.py`, `frequency.py`,
-`get_serial_number.py`, `set_cal_out_freq_6022.py` and
-`upload_firmware_6022.py` in [examples](https://github.com/Ho-Ro/Hantek6022API/tree/main/examples)
-are thin wrappers around the very same code and behave identically.
+`get_serial_number.py`, `set_cal_out_freq_6022.py` and `upload_firmware_6022.py` in
+[examples](examples) are thin wrappers around the very same code and behave identically.
 
 If you're lucky you can even use the programs without installing anything.
 You just need a working `python3` and the python modules `libusb1`, `matplotlib`, and `numpy`.
@@ -68,7 +75,7 @@ into `/etc/udev/rules.d`
 
 If you are a developer, you will definitely clone the repo and work with it more intensively. So please read on...
 
-You may wish to first add `60-hantek-6022-usb.rules` (living in [udev](https://github.com/Ho-Ro/Hantek6022API/tree/main/udev))
+You may wish to first add `60-hantek-6022-usb.rules` (living in [udev](udev))
 to your udev rules, via
 
     sudo cp 60-hantek-6022-usb.rules /etc/udev/rules.d/
@@ -97,6 +104,26 @@ Pull the submodule in (once):
 
     git submodule init
     git submodule update --remote
+
+### Automatically created changelog
+
+Every commit triggers a `pre-commit` git hook that creates an up-to-date `changelog` file
+and stages this file.
+
+```sh
+#!/bin/sh
+
+# this script is automatically run before committing
+# inspired by: https://gist.github.com/sg-s/2ddd0fe91f6037ffb1bce28be0e74d4e
+
+# changelog will be updated automatically by every commit
+#
+git log --pretty="%cs: %s [%h]" > changelog
+
+# and stage the change
+#
+git add changelog
+```
 
 ### Linux Build
 
@@ -138,51 +165,6 @@ do this automatically at start.
 **Don't Panik!**
 The firmware is uploaded into RAM and is lost after switching off the scope or disconnecting
 the USB, so the device can never be *bricked*.
-
-The calibration output (GND/probe connector pin) can generate a square wave
-between 32 Hz and 100 kHz. The firmware accepts only quantized values:
-32 Hz, 40...990 Hz in 10 Hz steps, 100...5500 Hz in 100 Hz steps
-and 1...100 kHz in 1 kHz steps. The firmware does not generate these values
-itself: it loads Timer2 with 2000000 // coded and toggles the pin on every
-overflow, so the *actual* output of a coded value is quantized to the divisors
-of the 2 MHz reference (e.g. everything 77000...80000 Hz yields 80000 Hz). The
-`frequency_6022` command picks the coded value whose actual output is nearest
-to FREQ and prints the real output (warns on stderr if it differs from FREQ,
-`--min`/`--max` instead pick the smallest actual output above / largest below
-FREQ, `--exact` rejects FREQ if it cannot be produced exactly, see
-`man frequency_6022`):
-
-    frequency_6022 400
-
-The program keeps its USB connection to the scope open so the calibration output
-keeps running: for `-t TIME` seconds, or (without `-t`) until interrupted with `^C`.
-Without this the kernel would autosuspend the idle USB port after a few seconds,
-which parks the FX2 CPU and freezes the (software generated) calibration output.
-
-The same can be done with the low-level python commands:
-
-```python
-#!/usr/bin/python3
-
-# get the python package
-from PyHT6022.LibUsbScope import Oscilloscope
-
-# create an Osclloscope object
-scope = Oscilloscope()
-
-# setup the scope
-scope.setup()
-
-# attach to the scope
-scope.open_handle()
-
-# upload firmware unless already uploaded
-if (not scope.is_device_firmware_present):
-    scope.flash_firmware()
-
-# and now set the calibration frequency output to 400 Hz
-scope.set_calibration_frequency( 400 )
-```
 
 ## It may even work under Windows
 
@@ -228,7 +210,7 @@ in worst case by four resistors R27/17 & R31/21 & R32/23 & R18/19/22 in the chai
 -> https://github.com/Ho-Ro/Hantek6022API/blob/main/hardware/6022BE_Frontend_with_pinout.jpg 
 
 In the end you can have a statistical gain tolerance of about 7%...10% -> RSS analysis
-(root sum square, square all tolerances, sum them up und calculate the root of this sum)
+(root sum square, i.e. square all tolerances, sum them up und calculate the root of this sum)
 gives an expected tolerance range:
 
 - sqrt( 2 * (5%)² ) = 1.4 * 5% = 7% for gain step x1
@@ -312,7 +294,8 @@ Requested Voltage | Applied Voltage  | Comment
 The program `capture_6022` (installed in `/usr/bin`, `examples/capture_6022.py` from a checkout)
 allows to capture both channels over a long time.
 
-The 256 x downsampling option increases the SNR and effective resolution (8bit -> at least 12 bit)
+The 256 x downsampling option increases the SNR and effective resolution(8bit -> at least 12 bit),
+see application note [AVR121](https://ww1.microchip.com/downloads/en/Appnotes/doc8003.pdf),
 and allows very long time recording. The program uses the offset and gain calibration from EEPROM.
 It writes the captured data as CSV (`time[s], ch1[V], ch2[V]`, no header) into stdout or an outfile
 and prints the DC, AC and RMS values of the data to stderr,
@@ -378,6 +361,71 @@ options:
 ```
 
 ![fft from capture](examples/fft_from_capture.png)
+
+## Use the device as a programable clock generator
+
+The calibration output (GND/probe connector pin) can generate a square wave
+between 32 Hz and 100 kHz. The firmware accepts only quantized values:
+32 Hz, 40...990 Hz in 10 Hz steps, 100...5500 Hz in 100 Hz steps
+and 1...100 kHz in 1 kHz steps. The firmware does not generate these values
+itself: it loads Timer2 with `2000000 // coded_value` and toggles the pin on every
+overflow, so the *actual* output of codedvalue is quantized to the divisors
+of the 2 MHz reference (e.g. everything 77000...80000 Hz yields 80000 Hz). The
+`frequency_6022` command picks the coded_value whose actual output is nearest
+to FREQ and prints the real output (warns on stderr if it differs from FREQ,
+`--min`/`--max` instead pick the smallest actual output above / largest below
+FREQ, `--exact` rejects FREQ if it cannot be produced exactly, see
+`man frequency_6022`):
+
+    frequency_6022 400
+
+The program keeps its USB connection to the scope open so the calibration output
+keeps running: for `-t TIME` seconds, or (without `-t`) until interrupted with `^C`.
+Without this the kernel would autosuspend the idle USB port after a few seconds,
+which stops the FX2 CPU clock and freezes the (software generated) calibration output.
+
+The same can be done with the low-level python commands:
+
+```python
+#!/usr/bin/python3
+
+# get the python package
+from PyHT6022.LibUsbScope import Oscilloscope
+
+# create an Osclloscope object
+scope = Oscilloscope()
+
+# setup the scope
+scope.setup()
+
+# attach to the scope
+scope.open_handle()
+
+# upload firmware unless already uploaded
+if (not scope.is_device_firmware_present):
+    scope.flash_firmware()
+
+# and now set the calibration frequency output to 400 Hz
+scope.set_calibration_frequency( 400 )
+```
+
+## HW improvements
+
+### AC coupling
+
+One weak point of the scope's HW is the missing AC coupling, helpful for removing the DC offset.
+A little HW hack allows to switch the inputs from DC coupling to AC coupling, check my stepby-step
+[documentation](docs/HANTEK6022_AC_Modification.pdf).
+
+### Jitter-free calibration output
+
+An issue of the Hantek scope is the jitter of the calibration out signal. It is generated by
+toggling an output pin in an interrupt routine triggered by counter/timer 2 overflow.
+Due to interrupt latency the signal jitters by some µs, this leads to a high phase jitter on high
+output frequencies. The FX2 CPU can provide the T2 overflow signal on pin PE2/T2OUT (PE2,
+available on JP2 of the PCB, at least 6022BE) as an alternate port function, this can toggle a
+flip-flop that provides a jitter-free square wave to the output, I described the little HW hack
+in a step-by-step [documentation](docs/HANTEK6022_Frequency_Generator_Modification.pdf).
 
 ## Other neat things you can do
 
