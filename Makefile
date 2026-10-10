@@ -49,7 +49,7 @@ fx2upload:
 # update the changelog from git
 .PHONY:	changelog
 changelog:
-	git log --pretty="%cs: %s [%h]" > CHANGELOG
+	git log --pretty="%cs: %s [%h]" > changelog
 
 
 # firmware version synchronisation to OpenHantek
